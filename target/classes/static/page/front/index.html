@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+    <link rel="stylesheet" href="../../css/element.css">
+    <link rel="stylesheet" href="../../css/base.css">
+
+    <style>
+        body {
+            background-color: #f0f9eb;
+        }
+    </style>
+</head>
+<body>
+<div id="wrapper" v-cloak>
+    <el-container>
+        <el-header style="background: #292828">
+            <el-row style="height: 100%;" type="flex" justify="center" align="middle">
+                <el-col :span="6">
+                    <div style="color: white; text-align: center; font-size: 24px;">
+                        新闻管理系统
+                    </div>
+                </el-col>
+                <el-col :span="16">
+                    <el-menu
+                            :default-active="src"
+                            mode="horizontal"
+                            @select="handleSelect"
+                            class="el-menu-demo"
+                            background-color="#292828"
+                            text-color="#fff"
+                            active-text-color="#ffd04b"
+                    >
+                        <el-menu-item index="index.html">新闻首页</el-menu-item>
+                        <el-menu-item index="blog.html">实时新闻</el-menu-item>
+                        <el-menu-item index="message.html">留言反馈</el-menu-item>
+
+                    </el-menu>
+                </el-col>
+                <el-col :span="4">
+                    <div v-if="user.id" style="display: flex">
+                        <span style="color: white">{{user.username}}&nbsp;&nbsp;</span>
+                        <el-button size="mini" @click="logout">退出</el-button>&nbsp;
+                        <div v-if="user.username==='admin'">
+                            <el-button size="mini" @click="enterEnd">后台</el-button>
+                        </div>
+                    </div>
+
+                    <div v-else>
+                        <a href="/page/end/login.html">
+                            <el-button size="mini" type="primary">登录</el-button>
+                        </a>
+                        <a href="/page/end/register.html">
+                            <el-button size="mini">注册</el-button>
+                        </a>
+                    </div>
+                </el-col>
+            </el-row>
+        </el-header>
+        <el-main>
+            <el-row type="flex" justify="center" :gutter="20">
+                <el-col :span="16">
+                    <div>
+                        <el-row :gutter="10">
+                            <el-col :span="24">
+                                <el-carousel height="305px">
+                                    <el-carousel-item v-for="item in imgList" :key="item">
+                                        <a :href="'/page/front/detail.html?id=' + item.id" target="_blank">
+                                            <img style="width: 100%; height: 100%; border-radius: 4px;" :src='item.img'>
+                                        </a>
+                                    </el-carousel-item>
+                                </el-carousel>
+                            </el-col>
+<!--                            <el-col :span="8">-->
+<!--                                <div>-->
+<!--                                    <img style="width: 100%; height: 150px; border-radius: 4px;" src='' alt="">-->
+<!--                                </div>-->
+<!--                                <div style="margin-top: 5px">-->
+<!--                                    <img style="width: 100%; height: 150px; border-radius: 4px;" src='' alt="">-->
+<!--                                </div>-->
+<!--                            </el-col>-->
+                        </el-row>
+                    </div>
+                    <div style="margin: 20px 0">
+                        <el-card>
+                            <div style="border-bottom: 1px solid gray; padding: 10px 0; font-size: 20px">新闻推荐</div>
+                            <div style="margin: 10px 0">
+                                <el-row :gutter="10">
+                                    <el-col :span="8" v-for="(item,index) in blogData" :key="item" style="margin: 5px 0;">
+                                        <el-card :body-style="{ padding: '5px' }">
+                                            <a :href="'http://localhost:8888/page/front/detail.html?id=' + item.id" target="_blank">
+                                                <img :src="item.img" style="width: 100%; height: 170px; border-radius: 5px" class="image">
+                                            </a>
+                                            <div style="padding: 14px; height: 180px">
+                                                <div style="font-size: 16px; height: 50px"><strong>{{item.title}}</strong></div>
+                                                <div style="margin-top: 10px">
+                                                    <div style="color: #6b6b6b; height: 50px; margin-bottom: 10px">{{item.description}}</div>
+                                                    <span style="color: #6b6b6b">{{item.time}}</span>
+                                                    <a :href="'http://localhost:8888/page/front/detail.html?id=' + item.id" target="_blank">
+                                                        <el-button style="float: right" size="mini" icon="el-icon-view">阅读文章</el-button>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </el-card>
+                                    </el-col>
+                                </el-row>
+                            </div>
+                            <!-- 分页 -->
+                            <div style="background-color: white">
+                                <el-pagination
+                                        @size-change="handleSizeChange"
+                                        @current-change="handleCurrentChange"
+                                        :current-page="pageNum"
+                                        :page-sizes="[6, 9, 12, 15]"
+                                        :page-size="pageSize"
+                                        layout="total, sizes, prev, pager, next, jumper"
+                                        :total="total">
+                                </el-pagination>
+                            </div>
+                        </el-card>
+
+                    </div>
+                </el-col>
+
+
+                <el-col :span="6">
+                    <div style="margin: 20px 0">
+                        <el-card>
+                            <div style="border-bottom: 1px solid gray; padding-bottom: 10px; font-size: 20px">新闻分类</div>
+                            <div style="margin-top: 10px">
+                                <a :href="'http://localhost:8888/page/front/blog.html?tag=' + item.name" v-for="item in tags">
+                                    <el-tag style="margin: 5px">{{item.name}}</el-tag>
+                                </a>
+                            </div>
+                        </el-card>
+                    </div>
+                    <div style="margin: 20px 0">
+                        <el-card style="height: 520px">
+                            <div style="border-bottom: 1px solid gray; padding-bottom: 10px; font-size: 20px">热点推荐</div>
+                            <el-collapse accordion>
+                                <el-collapse-item v-for="tem in blogList" :key="tem">
+                                    <template slot="title">
+                                        <i class="header-icon el-icon-info"></i>{{tem.title}}
+                                    </template>
+                                    <div>阅读量：{{tem.view}}</div>
+                                    <div>{{tem.description}}</div>
+                                </el-collapse-item>
+                            </el-collapse>
+                        </el-card>
+                    </div>
+
+                </el-col>
+
+
+            </el-row>
+        </el-main>
+
+    </el-container>
+</div>
+
+<!--    js-->
+<script src="../../js/jquery.min.js"></script>
+
+<script src="../../js/vue.min.js"></script>
+<script src="../../js/element.js"></script>
+
+<script>
+    let urlBase = "/api/blog/";
+    new Vue({
+        el: "#wrapper",
+        data: {
+            src: 'index.html',
+            search: '',
+            blogData: [],
+            pageNum: 1,
+            pageSize: 6,
+            total: 0,
+            user: {},
+            imgList: [],
+            tags: [],
+            isAdmin: false,
+            blogList:[]
+        },
+        created() {
+            $.get("/api/user/session").then(res => {
+                if (res.data) {
+                    this.user = res.data;
+                    console.log(this.user);
+                    if (this.user.id === 1) {
+                        this.isAdmin = true;
+                    }
+                }
+            });
+            $.get("/api/tag").then(res => {
+                this.tags = res.data;
+            });
+            this.loadCarousel();
+            this.loadBlogs();
+            this.getList();
+        },
+        methods: {
+            handleChange(val) {
+                console.log(val);
+            },
+            handleSelect(key) {
+                location.href = key;
+                // window.setInterval("reinitIframe()", 50);
+            },
+            sign(obj) {
+
+            },
+            logout() {
+                $.get("/api/user/logout");
+                sessionStorage.removeItem("user");
+                location.href = "/page/front/index.html";
+            },
+            enterEnd() {
+                location.href = "/page/end/frame.html";
+            },
+            loadCarousel() {
+                $.get(urlBase + "/carousel").then(res => {
+                    this.imgList = res.data.records;
+                })
+            },
+            loadBlogs() {
+                $.get(urlBase + "/page?pageNum=" + this.pageNum + "&pageSize=" + this.pageSize + "&name=" + this.search).then(res => {
+                    let data = res.data.records;
+                    data.forEach(item => {
+                        let descr = item.description;
+                        let title = item.title;
+                        item.description = descr.length <= 35 ? descr : (descr.substring(0,35) + '...');
+                        item.title = title.length <= 30 ? title : (title.substring(0,30) + '...');
+                    });
+                    this.blogData = data;
+                    this.total = res.data.total;
+                })
+            },
+            getList(){
+                $.get(urlBase + "/getList?").then(res => {
+
+                    let list = res;
+                    this.blogList=list;
+                    console.log(list);
+                })
+            },
+            handleSizeChange(pageSize) {
+                this.pageSize = pageSize;
+                this.loadBlogs();
+            },
+            handleCurrentChange(pageNum) {
+                this.pageNum = pageNum;
+                this.loadBlogs();
+            },
+            showImg(id) {
+                document.getElementById(id).style.display='block';
+            },
+            hideImg(id) {
+                document.getElementById(id).style.display='none';
+            }
+        }
+    })
+</script>
+</body>
+</html>
